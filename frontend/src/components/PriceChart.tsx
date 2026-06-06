@@ -2,6 +2,7 @@ import {
   ComposedChart,
   Area,
   Line,
+  ReferenceLine,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -101,9 +102,10 @@ export default function PriceChart({
           <YAxis
             tick={{ fill: '#475569', fontSize: 11 }}
             tickFormatter={yFormatter}
-            width={48}
+            width={55}
             tickLine={false}
             axisLine={false}
+            domain={['auto', 'auto']}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend
@@ -132,6 +134,8 @@ export default function PriceChart({
               activeDot={{ r: 4, fill: realColor }}
             />
           )}
+          {/* Zero reference line — visible when prices go negative */}
+          <ReferenceLine y={0} stroke="#475569" strokeDasharray="4 4" strokeWidth={1} />
         </ComposedChart>
       </ResponsiveContainer>
     </div>

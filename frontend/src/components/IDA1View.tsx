@@ -16,7 +16,8 @@ function fmtTs(ts: string) {
   })
 }
 
-const yFmt = (v: number) => String(Math.round(v))
+// IDA1 values are in €/MWh — can be negative (solar surplus)
+const yFmt = (v: number) => v.toLocaleString('es-ES', { maximumFractionDigits: 0 })
 
 export default function IDA1View() {
   const [dates, setDates] = useState<string[]>([])
@@ -142,15 +143,15 @@ export default function IDA1View() {
             <StatCard
               label="MAE"
               value={data.metrics ? data.metrics.mae.toLocaleString('es-ES') : null}
-              unit="€/MW"
+              unit="€/MWh"
               color={
                 !data.metrics
                   ? 'slate'
-                  : data.metrics.mae < 20
+                  : data.metrics.mae < 30
                   ? 'green'
-                  : data.metrics.mae < 50
+                  : data.metrics.mae < 80
                   ? 'sky'
-                  : data.metrics.mae < 100
+                  : data.metrics.mae < 150
                   ? 'orange'
                   : 'red'
               }
@@ -159,7 +160,7 @@ export default function IDA1View() {
             <StatCard
               label="Error Máximo"
               value={data.metrics ? data.metrics.max_error.toLocaleString('es-ES') : null}
-              unit="€/MW"
+              unit="€/MWh"
               color="orange"
             />
             <StatCard
@@ -169,7 +170,7 @@ export default function IDA1View() {
                   ? data.stats_pred.mean.toLocaleString('es-ES', { maximumFractionDigits: 0 })
                   : null
               }
-              unit="€/MW"
+              unit="€/MWh"
               color="slate"
               secondary={
                 data.stats_pred
@@ -184,7 +185,7 @@ export default function IDA1View() {
                   ? `${data.stats_pred.min.toFixed(0)} – ${data.stats_pred.max.toFixed(0)}`
                   : null
               }
-              unit="€/MW"
+              unit="€/MWh"
               color="slate"
             />
           </div>
@@ -197,7 +198,7 @@ export default function IDA1View() {
           {/* Main chart */}
           <PriceChart
             data={chartData}
-            unit="€/MW"
+            unit="€/MWh"
             hasReal={data.has_real}
             title={`Predicción vs Real · IDA1 · ${selected}`}
             yFormatter={yFmt}
@@ -207,7 +208,7 @@ export default function IDA1View() {
           {data.has_real && (
             <ErrorChart
               data={errorData}
-              unit="€/MW"
+              unit="€/MWh"
               title="Error absoluto por período · IDA1"
               yFormatter={yFmt}
             />
@@ -215,7 +216,7 @@ export default function IDA1View() {
 
           {/* History */}
           {history.length >= 2 && (
-            <HistoryChart data={history} market="ida1" unit="€/MW" />
+            <HistoryChart data={history} market="ida1" unit="€/MWh" />
           )}
 
           {/* AI Report */}
@@ -282,7 +283,7 @@ function HourlyHeatmap({ hourly, realSeries }: HeatmapProps) {
           return (
             <div
               key={hour}
-              title={`${hour}\nPred: ${Math.round(val)} €/MW${hasReal ? `\nReal: ${Math.round(realVal)} €/MW\nError: ${Math.round(err!)} €/MW` : ''}`}
+              title={`${hour}\nPred: ${Math.round(val)} €/MWh${hasReal ? `\nReal: ${Math.round(realVal)} €/MWh\nError: ${Math.round(err!)} €/MWh` : ''}`}
               className="relative rounded-md p-1.5 flex flex-col items-center cursor-default group"
               style={{ background: heatColor(val) + '33', borderColor: heatColor(val) + '66', borderWidth: 1 }}
             >
@@ -298,7 +299,7 @@ function HourlyHeatmap({ hourly, realSeries }: HeatmapProps) {
         })}
       </div>
       <div className="flex justify-between mt-2 text-[10px] text-slate-600">
-        <span>Precio pred (azul=bajo, rojo=alto)</span>
+        <span>Precio pred en €/MWh (azul=bajo, rojo=alto)</span>
         {Object.keys(realHourly).length > 0 && (
           <span className="text-orange-400">naranja = real</span>
         )}
