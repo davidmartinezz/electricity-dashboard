@@ -29,7 +29,11 @@ export default function IDA1View() {
   useEffect(() => {
     fetchDates().then(d => {
       setDates(d.ida1)
-      if (d.ida1.length) setSelected([...d.ida1].sort().at(-1)!)
+      if (d.ida1.length) {
+        const today = new Date().toISOString().slice(0, 10)
+        const sorted = [...d.ida1].sort()
+        setSelected(sorted.includes(today) ? today : sorted.at(-1)!)
+      }
     })
     fetchHistoryIDA1().then(setHistory)
   }, [])
@@ -62,6 +66,27 @@ export default function IDA1View() {
         {dates.length > 0 && (
           <DatePicker dates={dates} value={selected} onChange={setSelected} />
         )}
+        {(() => {
+          const today = new Date().toISOString().slice(0, 10)
+          const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
+          const set = new Set(dates)
+          return (
+            <div className="flex gap-1.5 text-xs">
+              {set.has(today) && (
+                <button onClick={() => setSelected(today)}
+                  className={`px-3 py-1.5 rounded-lg border transition-colors ${selected === today ? 'bg-sky-600 border-sky-500 text-white' : 'border-slate-700 text-slate-400 hover:text-slate-200 bg-slate-800'}`}>
+                  Hoy
+                </button>
+              )}
+              {set.has(tomorrow) && (
+                <button onClick={() => setSelected(tomorrow)}
+                  className={`px-3 py-1.5 rounded-lg border transition-colors ${selected === tomorrow ? 'bg-sky-600 border-sky-500 text-white' : 'border-slate-700 text-slate-400 hover:text-slate-200 bg-slate-800'}`}>
+                  Mañana
+                </button>
+              )}
+            </div>
+          )
+        })()}
 
         {data && (
           <div className="ml-auto flex items-center gap-2 text-xs text-slate-600">
@@ -90,7 +115,15 @@ export default function IDA1View() {
         </div>
       )}
 
-      {err && !loading && (
+      {/* No data for selected date */}
+      {!loading && selected && !new Set(dates).has(selected) && (
+        <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-8 text-center">
+          <p className="text-slate-400 text-sm">Sin predicción IDA1 para <span className="text-slate-200 font-medium">{selected}</span></p>
+          <p className="text-slate-600 text-xs mt-1">Las predicciones se generan a las 13:00 (L-V)</p>
+        </div>
+      )}
+
+      {err && !loading && new Set(dates).has(selected) && (
         <div className="bg-red-950/40 border border-red-800/50 rounded-xl p-4 text-red-400 text-sm">
           {err}
         </div>
