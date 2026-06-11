@@ -10,6 +10,8 @@ import AIReport from './AIReport'
 
 type Dir = 'up' | 'down'
 
+const fmtDate = (d: string) => d.replaceAll('-', '/')
+
 function fmtTs(ts: string) {
   return new Date(ts).toLocaleTimeString('es-ES', {
     hour: '2-digit',
@@ -152,7 +154,7 @@ export default function AFRRView() {
       {/* No data for selected date */}
       {!loading && selected && !new Set(dates).has(selected) && (
         <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-8 text-center">
-          <p className="text-slate-400 text-sm">Sin predicción aFRR para <span className="text-slate-200 font-medium">{selected}</span></p>
+          <p className="text-slate-400 text-sm">Sin predicción aFRR para <span className="text-slate-200 font-medium">{fmtDate(selected)}</span></p>
           <p className="text-slate-600 text-xs mt-1">Las predicciones se generan a las 10:00 (L-V)</p>
         </div>
       )}
@@ -223,7 +225,7 @@ export default function AFRRView() {
             unit="€/MW"
             hasReal={data.has_real}
             predColor={predColor}
-            title={`Predicción vs Real · aFRR ${dir.toUpperCase()} · ${selected}`}
+            title={`Predicción vs Real · aFRR ${dir.toUpperCase()} · ${fmtDate(selected)}`}
             yFormatter={yFmt}
           />
 

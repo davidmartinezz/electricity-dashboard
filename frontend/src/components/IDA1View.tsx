@@ -8,6 +8,8 @@ import ErrorChart from './ErrorChart'
 import HistoryChart from './HistoryChart'
 import AIReport from './AIReport'
 
+const fmtDate = (d: string) => d.replaceAll('-', '/')
+
 function fmtTs(ts: string) {
   return new Date(ts).toLocaleTimeString('es-ES', {
     hour: '2-digit',
@@ -119,7 +121,7 @@ export default function IDA1View() {
       {/* No data for selected date */}
       {!loading && selected && !new Set(dates).has(selected) && (
         <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-8 text-center">
-          <p className="text-slate-400 text-sm">Sin predicción IDA1 para <span className="text-slate-200 font-medium">{selected}</span></p>
+          <p className="text-slate-400 text-sm">Sin predicción IDA1 para <span className="text-slate-200 font-medium">{fmtDate(selected)}</span></p>
           <p className="text-slate-600 text-xs mt-1">Las predicciones se generan a las 13:00 (L-V)</p>
         </div>
       )}
@@ -200,7 +202,7 @@ export default function IDA1View() {
             data={chartData}
             unit="€/MWh"
             hasReal={data.has_real}
-            title={`Predicción vs Real · IDA1 · ${selected}`}
+            title={`Predicción vs Real · IDA1 · ${fmtDate(selected)}`}
             yFormatter={yFmt}
           />
 
