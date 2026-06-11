@@ -26,7 +26,7 @@ function errorColor(ratio: number): string {
 }
 
 const defaultYFmt = (v: number) =>
-  v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(Math.round(v))
+  v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v.toFixed(1)
 
 export default function ErrorChart({ data, unit, title, yFormatter = defaultYFmt }: Props) {
   const valid = data.filter(d => d.error != null)
@@ -64,7 +64,7 @@ export default function ErrorChart({ data, unit, title, yFormatter = defaultYFmt
           />
           <Tooltip
             formatter={(v: number) => [
-              `${v.toLocaleString('es-ES', { maximumFractionDigits: 0 })} ${unit}`,
+              `${v.toLocaleString('es-ES', { maximumFractionDigits: 1 })} ${unit}`,
               'Error abs.',
             ]}
             contentStyle={{

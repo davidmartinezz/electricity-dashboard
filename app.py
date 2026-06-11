@@ -137,8 +137,8 @@ def _build_afrr_response(date_str: str, series: list[dict], meta: dict) -> dict:
             "down_pred": down_pred,
             "up_real": up_real,
             "down_real": down_real,
-            "up_error": round(abs(up_pred - up_real)) if up_pred is not None and up_real is not None else None,
-            "down_error": round(abs(down_pred - down_real)) if down_pred is not None and down_real is not None else None,
+            "up_error": round(abs(up_pred - up_real), 1) if up_pred is not None and up_real is not None else None,
+            "down_error": round(abs(down_pred - down_real), 1) if down_pred is not None and down_real is not None else None,
         })
 
     up_err = [p["up_error"] for p in enriched if p["up_error"] is not None]
@@ -174,10 +174,10 @@ def _parse_afrr_local(date_str: str) -> dict:
 
     if df_up is not None:
         sub = df_up[df_up.index.date == target]
-        real_up = {ts.isoformat(): round(float(v), 0) for ts, v in sub["value"].items() if pd.notna(v)}
+        real_up = {ts.isoformat(): round(float(v), 1) for ts, v in sub["value"].items() if pd.notna(v)}
     if df_down is not None:
         sub = df_down[df_down.index.date == target]
-        real_down = {ts.isoformat(): round(float(v), 0) for ts, v in sub["value"].items() if pd.notna(v)}
+        real_down = {ts.isoformat(): round(float(v), 1) for ts, v in sub["value"].items() if pd.notna(v)}
 
     series = [
         {
@@ -306,12 +306,12 @@ def get_ida1(date_str: str):
 def _history_metrics(market: str, date_str: str, series: list[dict]) -> Optional[dict]:
     if market == "aFRR":
         up_err = [
-            round(abs(p["up_pred"] - p["up_real"]))
+            round(abs(p["up_pred"] - p["up_real"]), 1)
             for p in series
             if p.get("up_pred") is not None and p.get("up_real") is not None
         ]
         down_err = [
-            round(abs(p["down_pred"] - p["down_real"]))
+            round(abs(p["down_pred"] - p["down_real"]), 1)
             for p in series
             if p.get("down_pred") is not None and p.get("down_real") is not None
         ]
@@ -320,9 +320,9 @@ def _history_metrics(market: str, date_str: str, series: list[dict]) -> Optional
         n = len(up_err)
         return {
             "date": date_str,
-            "mae_up": round(sum(up_err) / n),
-            "mae_down": round(sum(down_err) / len(down_err)) if down_err else None,
-            "rmse_up": round((sum(e**2 for e in up_err) / n) ** 0.5),
+            "mae_up": round(sum(up_err) / n, 1),
+            "mae_down": round(sum(down_err) / len(down_err), 1) if down_err else None,
+            "rmse_up": round((sum(e**2 for e in up_err) / n) ** 0.5, 1),
         }
     else:
         errors = [

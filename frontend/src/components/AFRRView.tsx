@@ -21,7 +21,7 @@ function fmtTs(ts: string) {
 }
 
 const yFmt = (v: number) =>
-  v >= 1000 ? `${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}k` : String(Math.round(v))
+  v >= 1000 ? `${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}k` : v.toFixed(1)
 
 export default function AFRRView() {
   const [dates, setDates] = useState<string[]>([])
@@ -202,16 +202,16 @@ export default function AFRRView() {
             />
             <StatCard
               label="Media Predicción"
-              value={stats ? stats.mean.toLocaleString('es-ES', { maximumFractionDigits: 0 }) : null}
+              value={stats ? stats.mean.toLocaleString('es-ES', { maximumFractionDigits: 1 }) : null}
               unit="€/MW"
               color="slate"
-              secondary={stats ? `Mediana: ${stats.median.toLocaleString('es-ES', { maximumFractionDigits: 0 })}` : undefined}
+              secondary={stats ? `Mediana: ${stats.median.toLocaleString('es-ES', { maximumFractionDigits: 1 })}` : undefined}
             />
             <StatCard
               label="Rango Predicción"
               value={
                 stats
-                  ? `${stats.min.toLocaleString('es-ES', { maximumFractionDigits: 0 })} – ${stats.max.toLocaleString('es-ES', { maximumFractionDigits: 0 })}`
+                  ? `${stats.min.toLocaleString('es-ES', { maximumFractionDigits: 1 })} – ${stats.max.toLocaleString('es-ES', { maximumFractionDigits: 1 })}`
                   : null
               }
               unit="€/MW"

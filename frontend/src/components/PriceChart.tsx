@@ -28,7 +28,7 @@ interface Props {
 }
 
 const defaultYFmt = (v: number) =>
-  v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(Math.round(v))
+  v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v.toFixed(1)
 
 export default function PriceChart({
   data,
@@ -52,7 +52,7 @@ export default function PriceChart({
             </span>
             <span className="font-mono text-slate-200">
               {entry.value != null
-                ? entry.value.toLocaleString('es-ES', { maximumFractionDigits: 0 })
+                ? entry.value.toLocaleString('es-ES', { maximumFractionDigits: 1 })
                 : '—'}{' '}
               <span className="text-slate-500">{unit}</span>
             </span>
@@ -62,7 +62,7 @@ export default function PriceChart({
           <div className="border-t border-slate-700 mt-2 pt-2 flex justify-between">
             <span className="text-slate-500">Error</span>
             <span className="font-mono text-amber-400">
-              {Math.abs(payload[0].value - payload[1].value).toLocaleString('es-ES', { maximumFractionDigits: 0 })} {unit}
+              {Math.abs(payload[0].value - payload[1].value).toLocaleString('es-ES', { maximumFractionDigits: 1 })} {unit}
             </span>
           </div>
         )}

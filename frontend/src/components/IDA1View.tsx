@@ -19,7 +19,7 @@ function fmtTs(ts: string) {
 }
 
 // IDA1 values are in €/MWh — can be negative (solar surplus)
-const yFmt = (v: number) => v.toLocaleString('es-ES', { maximumFractionDigits: 0 })
+const yFmt = (v: number) => v.toLocaleString('es-ES', { maximumFractionDigits: 1 })
 
 export default function IDA1View() {
   const [dates, setDates] = useState<string[]>([])
@@ -169,14 +169,14 @@ export default function IDA1View() {
               label="Media Predicción"
               value={
                 data.stats_pred
-                  ? data.stats_pred.mean.toLocaleString('es-ES', { maximumFractionDigits: 0 })
+                  ? data.stats_pred.mean.toLocaleString('es-ES', { maximumFractionDigits: 1 })
                   : null
               }
               unit="€/MWh"
               color="slate"
               secondary={
                 data.stats_pred
-                  ? `Mediana: ${data.stats_pred.median.toLocaleString('es-ES', { maximumFractionDigits: 0 })}`
+                  ? `Mediana: ${data.stats_pred.median.toLocaleString('es-ES', { maximumFractionDigits: 1 })}`
                   : undefined
               }
             />
@@ -184,7 +184,7 @@ export default function IDA1View() {
               label="Rango Predicción"
               value={
                 data.stats_pred
-                  ? `${data.stats_pred.min.toFixed(0)} – ${data.stats_pred.max.toFixed(0)}`
+                  ? `${data.stats_pred.min.toFixed(1)} – ${data.stats_pred.max.toFixed(1)}`
                   : null
               }
               unit="€/MWh"
