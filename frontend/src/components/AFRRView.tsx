@@ -155,7 +155,7 @@ export default function AFRRView() {
       {!loading && selected && !new Set(dates).has(selected) && (
         <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-8 text-center">
           <p className="text-slate-400 text-sm">Sin predicción aFRR para <span className="text-slate-200 font-medium">{fmtDate(selected)}</span></p>
-          <p className="text-slate-600 text-xs mt-1">Las predicciones se generan a las 10:00 (L-V)</p>
+          <p className="text-slate-600 text-xs mt-1">Las predicciones se generan a las 10:00 (todos los días)</p>
         </div>
       )}
 
