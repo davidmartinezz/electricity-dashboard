@@ -63,6 +63,37 @@ export interface DateList {
   ida1: string[]
 }
 
+export interface AFRRRangePoint {
+  ts: string
+  up_pred: number | null
+  down_pred: number | null
+  up_real: number | null
+  down_real: number | null
+  up_error: number | null
+  down_error: number | null
+}
+
+export interface AFRRRangeData {
+  from_date: string
+  to_date: string
+  series: AFRRRangePoint[]
+  has_real: boolean
+}
+
+export interface IDA1RangePoint {
+  ts: string
+  pred: number | null
+  real: number | null
+  error: number | null
+}
+
+export interface IDA1RangeData {
+  from_date: string
+  to_date: string
+  series: IDA1RangePoint[]
+  has_real: boolean
+}
+
 export interface AFRRHistoryPoint {
   date: string
   mae_up: number

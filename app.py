@@ -61,6 +61,18 @@ def _sb_get(table: str, params: dict) -> list[dict]:
     return r.json()
 
 
+def _sb_get_list(table: str, params: list[tuple]) -> list[dict]:
+    """Like _sb_get but accepts list of tuples to allow duplicate param keys."""
+    r = httpx.get(
+        f"{SUPABASE_URL}/rest/v1/{table}",
+        params=params,
+        headers=_sb_headers(),
+        timeout=20,
+    )
+    r.raise_for_status()
+    return r.json()
+
+
 # ── Local file helpers ─────────────────────────────────────────────────────────
 
 def _read_parquet(name: str):
@@ -299,6 +311,91 @@ def get_ida1(date_str: str):
         return _build_ida1_response(date_str, series_rows, meta_rows[0])
 
     return _parse_ida1_local(date_str)
+
+
+# ── Range endpoints ────────────────────────────────────────────────────────────
+
+@app.get("/api/range/afrr")
+def get_afrr_range(from_date: str, to_date: str):
+    """Combined aFRR series for all dates in [from_date, to_date]."""
+    if _sb_ok():
+        rows = _sb_get_list("price_predictions", [
+            ("market", "eq.aFRR"),
+            ("target_date", f"gte.{from_date}"),
+            ("target_date", f"lte.{to_date}"),
+            ("order", "ts.asc"),
+            ("limit", "5000"),
+        ])
+        series = []
+        for p in rows:
+            up_pred = p.get("up_pred")
+            down_pred = p.get("down_pred")
+            up_real = p.get("up_real")
+            down_real = p.get("down_real")
+            series.append({
+                "ts": p["ts"],
+                "up_pred": up_pred,
+                "down_pred": down_pred,
+                "up_real": up_real,
+                "down_real": down_real,
+                "up_error": round(abs(up_pred - up_real), 1) if up_pred is not None and up_real is not None else None,
+                "down_error": round(abs(down_pred - down_real), 1) if down_pred is not None and down_real is not None else None,
+            })
+        has_real = any(p["up_real"] is not None for p in series)
+        return {"from_date": from_date, "to_date": to_date, "series": series, "has_real": has_real}
+
+    from datetime import timedelta
+    series = []
+    d = date.fromisoformat(from_date)
+    end = date.fromisoformat(to_date)
+    while d <= end:
+        try:
+            day = _parse_afrr_local(d.isoformat())
+            series.extend(day["series"])
+        except HTTPException:
+            pass
+        d += timedelta(days=1)
+    has_real = any(p.get("up_real") is not None for p in series)
+    return {"from_date": from_date, "to_date": to_date, "series": series, "has_real": has_real}
+
+
+@app.get("/api/range/ida1")
+def get_ida1_range(from_date: str, to_date: str):
+    """Combined IDA1 series for all dates in [from_date, to_date]."""
+    if _sb_ok():
+        rows = _sb_get_list("price_predictions", [
+            ("market", "eq.IDA1"),
+            ("target_date", f"gte.{from_date}"),
+            ("target_date", f"lte.{to_date}"),
+            ("order", "ts.asc"),
+            ("limit", "5000"),
+        ])
+        series = []
+        for p in rows:
+            pred_val = p.get("ida1_pred")
+            real_val = p.get("ida1_real")
+            series.append({
+                "ts": p["ts"],
+                "pred": pred_val,
+                "real": real_val,
+                "error": round(abs(pred_val - real_val), 1) if pred_val is not None and real_val is not None else None,
+            })
+        has_real = any(p["real"] is not None for p in series)
+        return {"from_date": from_date, "to_date": to_date, "series": series, "has_real": has_real}
+
+    from datetime import timedelta
+    series = []
+    d = date.fromisoformat(from_date)
+    end = date.fromisoformat(to_date)
+    while d <= end:
+        try:
+            day = _parse_ida1_local(d.isoformat())
+            series.extend(day["series"])
+        except HTTPException:
+            pass
+        d += timedelta(days=1)
+    has_real = any(p.get("real") is not None for p in series)
+    return {"from_date": from_date, "to_date": to_date, "series": series, "has_real": has_real}
 
 
 # ── History ────────────────────────────────────────────────────────────────────

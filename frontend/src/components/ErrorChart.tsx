@@ -7,6 +7,7 @@ interface Props {
   unit: string
   title?: string
   yFormatter?: (v: number) => string
+  xTickFormatter?: (v: string) => string
 }
 
 function errorColor(ratio: number): string {
@@ -28,17 +29,18 @@ function errorColor(ratio: number): string {
 const defaultYFmt = (v: number) =>
   v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v.toFixed(1)
 
-export default function ErrorChart({ data, unit, title, yFormatter = defaultYFmt }: Props) {
+export default function ErrorChart({ data, unit, title, yFormatter = defaultYFmt, xTickFormatter }: Props) {
   const valid = data.filter(d => d.error != null)
   if (valid.length === 0) return null
 
   const maxErr = Math.max(...valid.map(d => d.error!))
 
-  const tickFormatter = (v: string) => {
+  const defaultTickFormatter = (v: string) => {
     const [h, m] = v.split(':')
     if (m !== '00') return ''
     return parseInt(h) % 4 === 0 ? `${parseInt(h)}h` : ''
   }
+  const tickFormatter = xTickFormatter ?? defaultTickFormatter
 
   return (
     <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">

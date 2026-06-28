@@ -25,6 +25,7 @@ interface Props {
   realColor?: string
   title?: string
   yFormatter?: (v: number) => string
+  xTickFormatter?: (v: string) => string
 }
 
 const defaultYFmt = (v: number) =>
@@ -38,6 +39,7 @@ export default function PriceChart({
   realColor = '#fb923c',
   title,
   yFormatter = defaultYFmt,
+  xTickFormatter,
 }: Props) {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null
@@ -70,13 +72,13 @@ export default function PriceChart({
     )
   }
 
-  // Show x-axis label every 4 hours (every 16 ticks for 15-min data)
-  const tickFormatter = (v: string) => {
+  const defaultTickFormatter = (v: string) => {
     const [h, m] = v.split(':')
     if (m !== '00') return ''
     const hour = parseInt(h)
     return hour % 4 === 0 ? `${hour}h` : ''
   }
+  const tickFormatter = xTickFormatter ?? defaultTickFormatter
 
   return (
     <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">

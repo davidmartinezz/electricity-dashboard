@@ -1,4 +1,4 @@
-import type { AFRRData, IDA1Data, DateList, AFRRHistoryPoint, IDA1HistoryPoint } from './types'
+import type { AFRRData, IDA1Data, DateList, AFRRHistoryPoint, IDA1HistoryPoint, AFRRRangeData, IDA1RangeData } from './types'
 
 const BASE = ''
 
@@ -13,3 +13,7 @@ export const fetchAFRR = (d: string) => get<AFRRData>(`/api/afrr/${d}`)
 export const fetchIDA1 = (d: string) => get<IDA1Data>(`/api/ida1/${d}`)
 export const fetchHistoryAFRR = () => get<AFRRHistoryPoint[]>('/api/history/afrr')
 export const fetchHistoryIDA1 = () => get<IDA1HistoryPoint[]>('/api/history/ida1')
+export const fetchAFRRRange = (from: string, to: string) =>
+  get<AFRRRangeData>(`/api/range/afrr?from_date=${from}&to_date=${to}`)
+export const fetchIDA1Range = (from: string, to: string) =>
+  get<IDA1RangeData>(`/api/range/ida1?from_date=${from}&to_date=${to}`)
