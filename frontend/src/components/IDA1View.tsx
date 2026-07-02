@@ -184,7 +184,7 @@ export default function IDA1View() {
           onClick={() => { const { today, tomorrow } = getTodayTomorrow(); setFromDate(today); setToDate(tomorrow) }}
           className="px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 bg-slate-800 text-xs transition-colors"
         >
-          Hoy + Mañana
+          Today + Tomorrow
         </button>
 
         {series.length > 0 && (
@@ -192,14 +192,14 @@ export default function IDA1View() {
             onClick={downloadCSV}
             className="px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 bg-slate-800 text-xs transition-colors flex items-center gap-1"
           >
-            ↓ Descargar CSV
+            ↓ Download CSV
           </button>
         )}
 
         {rangeData && (
           <div className="ml-auto flex items-center gap-2 text-xs text-slate-600">
             <span className={`w-2 h-2 rounded-full flex-shrink-0 ${rangeData.has_real ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-            {rangeData.has_real ? 'Datos reales disponibles' : 'Predicción (reales pendientes)'}
+            {rangeData.has_real ? 'Actual data available' : 'Forecast (actuals pending)'}
           </div>
         )}
       </div>
@@ -208,7 +208,7 @@ export default function IDA1View() {
       {loading && (
         <div className="flex items-center justify-center py-16 gap-3 text-slate-500">
           <div className="w-5 h-5 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
-          Cargando datos…
+          Loading data…
         </div>
       )}
 
@@ -220,8 +220,8 @@ export default function IDA1View() {
       {/* No data */}
       {!loading && !err && rangeData && series.length === 0 && (
         <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-8 text-center">
-          <p className="text-slate-400 text-sm">Sin datos de IDA1 para el rango seleccionado</p>
-          <p className="text-slate-600 text-xs mt-1">Las predicciones se generan a las 13:00 (todos los días)</p>
+          <p className="text-slate-400 text-sm">No IDA1 data for the selected range</p>
+          <p className="text-slate-600 text-xs mt-1">Forecasts are generated at 13:00 (every day)</p>
         </div>
       )}
 
@@ -237,20 +237,20 @@ export default function IDA1View() {
               secondary={metrics ? `RMSE: ${metrics.rmse.toLocaleString('es-ES')}` : undefined}
             />
             <StatCard
-              label="Error Máximo"
+              label="Max Error"
               value={metrics ? metrics.max_error.toLocaleString('es-ES') : null}
               unit="€/MWh"
               color="orange"
             />
             <StatCard
-              label="Media Predicción"
+              label="Forecast Mean"
               value={stats ? stats.mean.toLocaleString('es-ES', { maximumFractionDigits: 1 }) : null}
               unit="€/MWh"
               color="slate"
-              secondary={stats ? `Mediana: ${stats.median.toLocaleString('es-ES', { maximumFractionDigits: 1 })}` : undefined}
+              secondary={stats ? `Median: ${stats.median.toLocaleString('es-ES', { maximumFractionDigits: 1 })}` : undefined}
             />
             <StatCard
-              label="Rango Predicción"
+              label="Forecast Range"
               value={stats ? `${stats.min.toFixed(1)} – ${stats.max.toFixed(1)}` : null}
               unit="€/MWh"
               color="slate"
@@ -261,28 +261,28 @@ export default function IDA1View() {
           {peakMetrics && (
             <div className="space-y-2">
               <p className="text-xs text-slate-500 uppercase tracking-wide font-medium px-0.5">
-                Picos · top 15% ({peakMetrics.n} QH de {peakMetrics.total})
+                Peaks · top 15% ({peakMetrics.n} QH of {peakMetrics.total})
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <StatCard
-                  label="MAE en Picos"
+                  label="Peak MAE"
                   value={peakMetrics.mae.toLocaleString('es-ES')}
                   unit="€/MWh"
                   color={peakMetrics.mae < 50 ? 'green' : peakMetrics.mae < 120 ? 'sky' : peakMetrics.mae < 200 ? 'orange' : 'red'}
                   secondary={`RMSE: ${peakMetrics.rmse.toLocaleString('es-ES')}`}
                 />
                 <StatCard
-                  label="Acierto Picos"
+                  label="Peak Recall"
                   value={`${Math.round(peakMetrics.recall * 100)}%`}
                   color={peakMetrics.recall >= 0.65 ? 'green' : peakMetrics.recall >= 0.45 ? 'sky' : peakMetrics.recall >= 0.25 ? 'orange' : 'red'}
-                  secondary={`${Math.round(peakMetrics.recall * peakMetrics.n)}/${peakMetrics.n} períodos acertados`}
+                  secondary={`${Math.round(peakMetrics.recall * peakMetrics.n)}/${peakMetrics.n} periods matched`}
                 />
                 <StatCard
-                  label="Umbral Pico"
+                  label="Peak Threshold"
                   value={peakMetrics.threshold.toLocaleString('es-ES', { maximumFractionDigits: 1 })}
                   unit="€/MWh"
                   color="violet"
-                  secondary="p85 del precio real"
+                  secondary="p85 of actual price"
                 />
               </div>
             </div>
@@ -293,7 +293,7 @@ export default function IDA1View() {
             data={chartData}
             unit="€/MWh"
             hasReal={rangeData?.has_real ?? false}
-            title={`Predicción vs Real · IDA1 · ${fromDate} – ${toDate}`}
+            title={`Forecast vs Actual · IDA1 · ${fromDate} – ${toDate}`}
             yFormatter={yFmt}
             xTickFormatter={xTickFmt}
           />
@@ -303,7 +303,7 @@ export default function IDA1View() {
             <ErrorChart
               data={errorData}
               unit="€/MWh"
-              title="Error absoluto por período · IDA1"
+              title="Absolute Error per Period · IDA1"
               yFormatter={yFmt}
               xTickFormatter={xTickFmt}
             />

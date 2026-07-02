@@ -20,12 +20,12 @@ export default function App() {
           </div>
           <div>
             <h1 className="text-base font-semibold text-white leading-tight">
-              Precios Eléctricos España
+              Spanish Electricity Prices
             </h1>
-            <p className="text-xs text-slate-500">Predicción vs Realidad · Mercado Peninsular</p>
+            <p className="text-xs text-slate-500">Forecast vs Actual · Peninsular Market</p>
           </div>
           <div className="ml-auto text-xs text-slate-600 hidden sm:block">
-            REE / ESIOS · Actualización diaria automática
+            REE / ESIOS · Daily automatic update
           </div>
         </div>
       </header>
@@ -47,12 +47,12 @@ export default function App() {
                 {t === 'afrr' ? (
                   <span className="flex items-center gap-1.5">
                     <span className="text-base">⚖️</span>
-                    aFRR — Reserva de Regulación
+                    aFRR — Regulation Reserve
                   </span>
                 ) : (
                   <span className="flex items-center gap-1.5">
                     <span className="text-base">📈</span>
-                    IDA1 — Mercado Intradiario
+                    IDA1 — Intraday Market
                   </span>
                 )}
                 {tab === t && (

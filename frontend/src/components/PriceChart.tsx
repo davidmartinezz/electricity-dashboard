@@ -117,7 +117,7 @@ export default function PriceChart({
           <Area
             type="monotone"
             dataKey="pred"
-            name="Predicción"
+            name="Forecast"
             fill={`url(#grad-pred-${predColor.replace('#', '')})`}
             stroke={predColor}
             strokeWidth={2}
@@ -128,7 +128,7 @@ export default function PriceChart({
             <Line
               type="monotone"
               dataKey="real"
-              name="Real"
+              name="Actual"
               stroke={realColor}
               strokeWidth={2.5}
               dot={false}

@@ -27,7 +27,7 @@ type Props = AFRRProps | IDA1Props
 
 function dayLabel(d: string) {
   const dt = new Date(d + 'T12:00:00')
-  return dt.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+  return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
 const yFmt = (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(Math.round(v))
@@ -51,7 +51,7 @@ export default function HistoryChart({ data, market, unit }: Props) {
   return (
     <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
       <p className="text-xs font-medium text-slate-400 mb-3 uppercase tracking-wide">
-        Histórico MAE — Error medio por día
+        MAE History — Daily average error
       </p>
       <ResponsiveContainer width="100%" height={180}>
         <ComposedChart data={withAvg} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
@@ -98,7 +98,7 @@ export default function HistoryChart({ data, market, unit }: Props) {
           <Line
             type="monotone"
             dataKey="avg"
-            name="Media 3d"
+            name="3d Avg"
             stroke="#fb923c"
             strokeWidth={2}
             dot={false}

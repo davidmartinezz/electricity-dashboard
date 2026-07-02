@@ -67,7 +67,7 @@ export default function ErrorChart({ data, unit, title, yFormatter = defaultYFmt
           <Tooltip
             formatter={(v: number) => [
               `${v.toLocaleString('es-ES', { maximumFractionDigits: 1 })} ${unit}`,
-              'Error abs.',
+              'Abs. Error',
             ]}
             contentStyle={{
               background: '#0f172a',
@@ -87,13 +87,13 @@ export default function ErrorChart({ data, unit, title, yFormatter = defaultYFmt
       </ResponsiveContainer>
       <div className="flex items-center justify-end gap-4 mt-2 text-xs text-slate-600">
         <span className="flex items-center gap-1">
-          <span className="w-3 h-1.5 rounded bg-emerald-400 inline-block" /> Bajo
+          <span className="w-3 h-1.5 rounded bg-emerald-400 inline-block" /> Low
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-1.5 rounded bg-yellow-400 inline-block" /> Medio
+          <span className="w-3 h-1.5 rounded bg-yellow-400 inline-block" /> Medium
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-1.5 rounded bg-red-400 inline-block" /> Alto
+          <span className="w-3 h-1.5 rounded bg-red-400 inline-block" /> High
         </span>
       </div>
     </div>

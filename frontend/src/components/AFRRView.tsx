@@ -160,7 +160,7 @@ export default function AFRRView() {
           onClick={() => { const { today, tomorrow } = getTodayTomorrow(); setFromDate(today); setToDate(tomorrow) }}
           className="px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 bg-slate-800 text-xs transition-colors"
         >
-          Hoy + Mañana
+          Today + Tomorrow
         </button>
 
         {/* Direction toggle */}
@@ -188,14 +188,14 @@ export default function AFRRView() {
             onClick={downloadCSV}
             className="px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 bg-slate-800 text-xs transition-colors flex items-center gap-1"
           >
-            ↓ Descargar CSV
+            ↓ Download CSV
           </button>
         )}
 
         {rangeData && (
           <div className="ml-auto flex items-center gap-2 text-xs text-slate-600">
             <span className={`w-2 h-2 rounded-full flex-shrink-0 ${rangeData.has_real ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-            {rangeData.has_real ? 'Datos reales disponibles' : 'Predicción (reales pendientes)'}
+            {rangeData.has_real ? 'Actual data available' : 'Forecast (actuals pending)'}
           </div>
         )}
       </div>
@@ -204,7 +204,7 @@ export default function AFRRView() {
       {loading && (
         <div className="flex items-center justify-center py-16 gap-3 text-slate-500">
           <div className="w-5 h-5 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
-          Cargando datos…
+          Loading data…
         </div>
       )}
 
@@ -216,8 +216,8 @@ export default function AFRRView() {
       {/* No data */}
       {!loading && !err && rangeData && series.length === 0 && (
         <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-8 text-center">
-          <p className="text-slate-400 text-sm">Sin datos de aFRR para el rango seleccionado</p>
-          <p className="text-slate-600 text-xs mt-1">Las predicciones se generan a las 10:00 (todos los días)</p>
+          <p className="text-slate-400 text-sm">No aFRR data for the selected range</p>
+          <p className="text-slate-600 text-xs mt-1">Forecasts are generated at 10:00 (every day)</p>
         </div>
       )}
 
@@ -233,20 +233,20 @@ export default function AFRRView() {
               secondary={metrics ? `RMSE: ${metrics.rmse.toLocaleString('es-ES')}` : undefined}
             />
             <StatCard
-              label="Error Máximo"
+              label="Max Error"
               value={metrics ? metrics.max_error.toLocaleString('es-ES') : null}
               unit="€/MW"
               color="orange"
             />
             <StatCard
-              label="Media Predicción"
+              label="Forecast Mean"
               value={currentStats ? currentStats.mean.toLocaleString('es-ES', { maximumFractionDigits: 1 }) : null}
               unit="€/MW"
               color="slate"
-              secondary={currentStats ? `Mediana: ${currentStats.median.toLocaleString('es-ES', { maximumFractionDigits: 1 })}` : undefined}
+              secondary={currentStats ? `Median: ${currentStats.median.toLocaleString('es-ES', { maximumFractionDigits: 1 })}` : undefined}
             />
             <StatCard
-              label="Rango Predicción"
+              label="Forecast Range"
               value={currentStats ? `${currentStats.min.toLocaleString('es-ES', { maximumFractionDigits: 1 })} – ${currentStats.max.toLocaleString('es-ES', { maximumFractionDigits: 1 })}` : null}
               unit="€/MW"
               color="slate"
@@ -259,7 +259,7 @@ export default function AFRRView() {
             unit="€/MW"
             hasReal={rangeData?.has_real ?? false}
             predColor={predColor}
-            title={`Predicción vs Real · aFRR ${dir.toUpperCase()} · ${fromDate} – ${toDate}`}
+            title={`Forecast vs Actual · aFRR ${dir.toUpperCase()} · ${fromDate} – ${toDate}`}
             yFormatter={yFmt}
             xTickFormatter={xTickFmt}
           />
@@ -269,7 +269,7 @@ export default function AFRRView() {
             <ErrorChart
               data={errorData}
               unit="€/MW"
-              title={`Error absoluto · aFRR ${dir.toUpperCase()}`}
+              title={`Absolute Error · aFRR ${dir.toUpperCase()}`}
               yFormatter={yFmt}
               xTickFormatter={xTickFmt}
             />
@@ -278,8 +278,8 @@ export default function AFRRView() {
           {/* Both directions comparison if real data */}
           {rangeData?.has_real && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <StatCard label="MAE UP" value={metrics_up ? metrics_up.mae.toLocaleString('es-ES') : null} unit="€/MW" color="sky" secondary="Reserva regulación ascendente" />
-              <StatCard label="MAE DOWN" value={metrics_down ? metrics_down.mae.toLocaleString('es-ES') : null} unit="€/MW" color="violet" secondary="Reserva regulación descendente" />
+              <StatCard label="MAE UP" value={metrics_up ? metrics_up.mae.toLocaleString('es-ES') : null} unit="€/MW" color="sky" secondary="Upward regulation reserve" />
+              <StatCard label="MAE DOWN" value={metrics_down ? metrics_down.mae.toLocaleString('es-ES') : null} unit="€/MW" color="violet" secondary="Downward regulation reserve" />
             </div>
           )}
 
