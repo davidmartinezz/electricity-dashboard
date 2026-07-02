@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchIDA1Range, fetchHistoryIDA1 } from '../api'
-import type { IDA1RangeData, IDA1HistoryPoint } from '../types'
+import type { IDA1RangeData, IDA1RangePoint, IDA1HistoryPoint } from '../types'
 import StatCard from './StatCard'
 import PriceChart from './PriceChart'
 import ErrorChart from './ErrorChart'
@@ -48,6 +48,40 @@ function medianFn(arr: number[]): number {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
 }
 
+interface PeakMetrics {
+  mae: number
+  rmse: number
+  recall: number
+  threshold: number
+  n: number
+  total: number
+}
+
+function computePeakMetrics(series: IDA1RangePoint[], pct = 0.15): PeakMetrics | null {
+  const withReal = series.filter(p => p.real !== null && p.pred !== null)
+  if (withReal.length < 10) return null
+
+  const n = Math.ceil(withReal.length * pct)
+
+  // Top n periods by real price → actual peaks
+  const byReal = [...withReal].sort((a, b) => b.real! - a.real!).slice(0, n)
+  const peakTs = new Set(byReal.map(p => p.ts))
+  const threshold = byReal[byReal.length - 1].real!
+
+  // Peak MAE and RMSE
+  const peakErrors = byReal.map(p => Math.abs(p.pred! - p.real!))
+  const mae = round1(avg(peakErrors))
+  const rmse = round1(rmseFn(peakErrors))
+
+  // Recall: fraction of actual peak periods the model also ranked top n by prediction
+  const byPred = [...withReal].sort((a, b) => b.pred! - a.pred!).slice(0, n)
+  const predPeakTs = new Set(byPred.map(p => p.ts))
+  const hits = [...peakTs].filter(ts => predPeakTs.has(ts)).length
+  const recall = hits / n
+
+  return { mae, rmse, recall, threshold, n, total: withReal.length }
+}
+
 export default function IDA1View() {
   const { today, tomorrow } = getTodayTomorrow()
   const [fromDate, setFromDate] = useState(today)
@@ -80,6 +114,8 @@ export default function IDA1View() {
     rmse: round1(rmseFn(errors)),
     max_error: round1(Math.max(...errors)),
   } : null
+
+  const peakMetrics = rangeData?.has_real ? computePeakMetrics(series) : null
 
   const preds = series.filter(p => p.pred !== null).map(p => p.pred!)
   const stats = preds.length ? {
@@ -220,6 +256,37 @@ export default function IDA1View() {
               color="slate"
             />
           </div>
+
+          {/* Peak metrics */}
+          {peakMetrics && (
+            <div className="space-y-2">
+              <p className="text-xs text-slate-500 uppercase tracking-wide font-medium px-0.5">
+                Picos · top 15% ({peakMetrics.n} QH de {peakMetrics.total})
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <StatCard
+                  label="MAE en Picos"
+                  value={peakMetrics.mae.toLocaleString('es-ES')}
+                  unit="€/MWh"
+                  color={peakMetrics.mae < 50 ? 'green' : peakMetrics.mae < 120 ? 'sky' : peakMetrics.mae < 200 ? 'orange' : 'red'}
+                  secondary={`RMSE: ${peakMetrics.rmse.toLocaleString('es-ES')}`}
+                />
+                <StatCard
+                  label="Acierto Picos"
+                  value={`${Math.round(peakMetrics.recall * 100)}%`}
+                  color={peakMetrics.recall >= 0.65 ? 'green' : peakMetrics.recall >= 0.45 ? 'sky' : peakMetrics.recall >= 0.25 ? 'orange' : 'red'}
+                  secondary={`${Math.round(peakMetrics.recall * peakMetrics.n)}/${peakMetrics.n} períodos acertados`}
+                />
+                <StatCard
+                  label="Umbral Pico"
+                  value={peakMetrics.threshold.toLocaleString('es-ES', { maximumFractionDigits: 1 })}
+                  unit="€/MWh"
+                  color="violet"
+                  secondary="p85 del precio real"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Main chart */}
           <PriceChart
