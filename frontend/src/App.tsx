@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import AFRRView from './components/AFRRView'
 import IDA1View from './components/IDA1View'
+import RRTT2View from './components/RRTT2View'
 
-type Tab = 'afrr' | 'ida1'
+type Tab = 'afrr' | 'ida1' | 'rrtt2'
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('afrr')
@@ -34,7 +35,7 @@ export default function App() {
       <div className="border-b border-slate-800 bg-slate-900/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <nav className="flex">
-            {(['afrr', 'ida1'] as Tab[]).map(t => (
+            {(['afrr', 'ida1', 'rrtt2'] as Tab[]).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -49,10 +50,15 @@ export default function App() {
                     <span className="text-base">⚖️</span>
                     aFRR — Regulation Reserve
                   </span>
-                ) : (
+                ) : t === 'ida1' ? (
                   <span className="flex items-center gap-1.5">
                     <span className="text-base">📈</span>
                     IDA1 — Intraday Market
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-base">🔧</span>
+                    RRTT2 — Technical Constraints
                   </span>
                 )}
                 {tab === t && (
@@ -66,7 +72,7 @@ export default function App() {
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {tab === 'afrr' ? <AFRRView /> : <IDA1View />}
+        {tab === 'afrr' ? <AFRRView /> : tab === 'ida1' ? <IDA1View /> : <RRTT2View />}
       </main>
     </div>
   )

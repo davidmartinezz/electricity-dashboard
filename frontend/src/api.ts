@@ -17,3 +17,7 @@ export const fetchAFRRRange = (from: string, to: string) =>
   get<AFRRRangeData>(`/api/range/afrr?from_date=${from}&to_date=${to}`)
 export const fetchIDA1Range = (from: string, to: string) =>
   get<IDA1RangeData>(`/api/range/ida1?from_date=${from}&to_date=${to}`)
+export const fetchRRTT2Range = (from: string, to: string) =>
+  get<AFRRRangeData>(`/api/range/rrtt2?from_date=${from}&to_date=${to}`)
+export const exportCSVUrl = (market: string, from: string, to: string) =>
+  `/api/export/${market}?from_date=${from}&to_date=${to}`

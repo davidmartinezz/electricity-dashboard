@@ -121,15 +121,17 @@ def health():
 def get_dates():
     if _sb_ok():
         rows = _sb_get("price_meta", {"select": "market,target_date", "order": "target_date.asc"})
-        afrr = sorted({r["target_date"] for r in rows if r["market"] == "aFRR"})
-        ida1 = sorted({r["target_date"] for r in rows if r["market"] == "IDA1"})
-        return {"afrr": afrr, "ida1": ida1}
+        afrr  = sorted({r["target_date"] for r in rows if r["market"] == "aFRR"})
+        ida1  = sorted({r["target_date"] for r in rows if r["market"] == "IDA1"})
+        rrtt2 = sorted({r["target_date"] for r in rows if r["market"] == "RRTT2"})
+        return {"afrr": afrr, "ida1": ida1, "rrtt2": rrtt2}
 
     if not OUTPUT_DIR.exists():
-        return {"afrr": [], "ida1": []}
-    afrr = sorted([f.stem[5:] for f in OUTPUT_DIR.glob("afrr_????-??-??.json")])
-    ida1 = sorted([f.stem[5:] for f in OUTPUT_DIR.glob("ida1_????-??-??.json")])
-    return {"afrr": afrr, "ida1": ida1}
+        return {"afrr": [], "ida1": [], "rrtt2": []}
+    afrr  = sorted([f.stem[5:] for f in OUTPUT_DIR.glob("afrr_????-??-??.json")])
+    ida1  = sorted([f.stem[5:] for f in OUTPUT_DIR.glob("ida1_????-??-??.json")])
+    rrtt2 = sorted([f.stem[6:] for f in OUTPUT_DIR.glob("rrtt2_????-??-??.json")])
+    return {"afrr": afrr, "ida1": ida1, "rrtt2": rrtt2}
 
 
 # ── aFRR ───────────────────────────────────────────────────────────────────────
@@ -311,6 +313,134 @@ def get_ida1(date_str: str):
         return _build_ida1_response(date_str, series_rows, meta_rows[0])
 
     return _parse_ida1_local(date_str)
+
+
+# ── RRTT2 (restricciones técnicas fase 2 — pay-as-bid, horario) ───────────────
+#  Semántica clave: real NULL = esa hora NO hubo redespacho en esa dirección
+#  (mercado sparse), no un dato pendiente. El mercado UP solo activa ~19% de
+#  los días; DOWN casi siempre.
+
+def _build_rrtt2_response(date_str: str, series: list[dict], meta: dict) -> dict:
+    has_real = any(
+        p.get("up_real") is not None or p.get("down_real") is not None for p in series
+    )
+    enriched = []
+    for p in series:
+        up_pred, down_pred = p.get("up_pred"), p.get("down_pred")
+        up_real, down_real = p.get("up_real"), p.get("down_real")
+        enriched.append({
+            "ts": p["ts"],
+            "up_pred": up_pred, "down_pred": down_pred,
+            "up_real": up_real, "down_real": down_real,
+            "up_error": round(abs(up_pred - up_real), 1) if up_pred is not None and up_real is not None else None,
+            "down_error": round(abs(down_pred - down_real), 1) if down_pred is not None and down_real is not None else None,
+        })
+    up_err   = [p["up_error"]   for p in enriched if p["up_error"]   is not None]
+    down_err = [p["down_error"] for p in enriched if p["down_error"] is not None]
+    return {
+        "date": date_str,
+        "generated_at": meta.get("generated_at"),
+        "series": enriched,
+        "stats_pred": meta.get("stats_json"),
+        "metrics_up": _compute_metrics(up_err),
+        "metrics_down": _compute_metrics(down_err),
+        "has_real": has_real,
+        "ai_report": meta.get("ai_report"),
+    }
+
+
+@app.get("/api/rrtt2/{date_str}")
+def get_rrtt2(date_str: str):
+    if _sb_ok():
+        meta_rows = _sb_get("price_meta", {"market": "eq.RRTT2", "target_date": f"eq.{date_str}"})
+        if not meta_rows:
+            raise HTTPException(404, f"No RRTT2 data for {date_str}")
+        series_rows = _sb_get(
+            "price_predictions",
+            {"market": "eq.RRTT2", "target_date": f"eq.{date_str}", "order": "ts.asc", "limit": "50"},
+        )
+        return _build_rrtt2_response(date_str, series_rows, meta_rows[0])
+
+    pred_path = OUTPUT_DIR / f"rrtt2_{date_str}.json"
+    if not pred_path.exists():
+        raise HTTPException(404, f"No prediction file for {date_str}")
+    pred = json.loads(pred_path.read_text())
+    series = [
+        {"ts": ts, "up_pred": v["up_price"], "down_pred": v["down_price"],
+         "up_real": None, "down_real": None}
+        for ts, v in pred["data_hourly"].items()
+    ]
+    meta = {"generated_at": pred.get("generated_at"), "stats_json": pred.get("stats")}
+    return _build_rrtt2_response(date_str, series, meta)
+
+
+@app.get("/api/range/rrtt2")
+def get_rrtt2_range(from_date: str, to_date: str):
+    if _sb_ok():
+        rows = _sb_get_list("price_predictions", [
+            ("market", "eq.RRTT2"),
+            ("target_date", f"gte.{from_date}"),
+            ("target_date", f"lte.{to_date}"),
+            ("order", "ts.asc"),
+            ("limit", "2000"),
+        ])
+        resp = _build_rrtt2_response(from_date, rows, {})
+        return {"from_date": from_date, "to_date": to_date,
+                "series": resp["series"], "has_real": resp["has_real"]}
+
+    from datetime import timedelta
+    series = []
+    d = date.fromisoformat(from_date)
+    end = date.fromisoformat(to_date)
+    while d <= end:
+        try:
+            day = get_rrtt2(d.isoformat())
+            series.extend(day["series"])
+        except HTTPException:
+            pass
+        d += timedelta(days=1)
+    has_real = any(p.get("up_real") is not None or p.get("down_real") is not None for p in series)
+    return {"from_date": from_date, "to_date": to_date, "series": series, "has_real": has_real}
+
+
+# ── Export CSV genérico ────────────────────────────────────────────────────────
+
+@app.get("/api/export/{market}")
+def export_csv(market: str, from_date: str, to_date: str):
+    """Descarga CSV de cualquier mercado (aFRR, IDA1, RRTT2) en un rango."""
+    from fastapi.responses import PlainTextResponse
+
+    market_map = {"afrr": "aFRR", "ida1": "IDA1", "rrtt2": "RRTT2"}
+    mkt = market_map.get(market.lower())
+    if mkt is None:
+        raise HTTPException(400, f"Mercado desconocido: {market}")
+    if not _sb_ok():
+        raise HTTPException(503, "Export requiere Supabase")
+
+    cols = {
+        "aFRR":  ["ts", "up_pred", "up_real", "down_pred", "down_real"],
+        "RRTT2": ["ts", "up_pred", "up_real", "down_pred", "down_real"],
+        "IDA1":  ["ts", "ida1_pred", "ida1_real"],
+    }[mkt]
+
+    rows = _sb_get_list("price_predictions", [
+        ("market", f"eq.{mkt}"),
+        ("target_date", f"gte.{from_date}"),
+        ("target_date", f"lte.{to_date}"),
+        ("select", ",".join(["target_date"] + cols)),
+        ("order", "ts.asc"),
+        ("limit", "50000"),
+    ])
+    header = ",".join(["target_date"] + cols)
+    lines = [header] + [
+        ",".join("" if r.get(c) is None else str(r.get(c)) for c in ["target_date"] + cols)
+        for r in rows
+    ]
+    return PlainTextResponse(
+        "\n".join(lines),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={market}_{from_date}_{to_date}.csv"},
+    )
 
 
 # ── Range endpoints ────────────────────────────────────────────────────────────
